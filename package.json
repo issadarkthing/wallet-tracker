@@ -1,0 +1,18 @@
+{
+    "scripts": {
+        "dev": "node --enable-source-maps --watch dist/main.js",
+        "watch": "tsc -w",
+        "build": "tsc",
+        "start": "node dist/main.js"
+    },
+    "dependencies": {
+        "dotenv": "^16.4.1",
+        "ethers": "^6.10.0",
+        "node-telegram-bot-api": "^0.64.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.16",
+        "@types/node-telegram-bot-api": "^0.64.2",
+        "typescript": "^5.3.3"
+    }
+}
