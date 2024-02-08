@@ -58,7 +58,7 @@ async function getData() {
     const displayBalance = Number(ethers.formatEther(balance)).toFixed(5);
 
     let result = `
-${indicator} ${priceChange}%
+${indicator} ${priceChange.toFixed(4)}%
 <b>Balance:</b> <code>${formatNumber(calculateBalance(balance, usd))} USD</code>
 <b>Balance:</b> <code>${formatNumber(calculateBalance(balance, myr))} MYR</code>
 <b>Balance:</b> <code>${displayBalance} ETH</code>
