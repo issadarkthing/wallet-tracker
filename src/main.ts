@@ -58,20 +58,16 @@ async function getData() {
     const displayBalance = Number(ethers.formatEther(balance)).toFixed(5);
 
     let result = `
-<b>== ${displayDate} ${displayTime} ==</b>
-<b>Address:</b> ${address.slice(0, 13)}
-<b>Balance:</b> <code>${displayBalance} ETH</code>
+${indicator} ${priceChange}%
 <b>Balance:</b> <code>${formatNumber(calculateBalance(balance, usd))} USD</code>
 <b>Balance:</b> <code>${formatNumber(calculateBalance(balance, myr))} MYR</code>
+<b>Balance:</b> <code>${displayBalance} ETH</code>
 <b>ETH Price:</b> <code>${formatNumber(usd)} USD</code>
 <b>ETH Price:</b> <code>${formatNumber(myr)} MYR</code>
-`;
+<b>Address:</b> ${address.slice(0, 13)}
 
-    if (previousPrice !== 0 && priceChange !== 0) {
-        result += `<b>Price Change:</b> <code>${formatNumber(
-            priceChange
-        )}%</code> ${indicator}`;
-    }
+<i>${displayDate} ${displayTime}</i>
+`;
 
     previousPrice = myr;
 
@@ -90,6 +86,10 @@ function priceChangeIndicator(price: number) {
 
     if (price < 0) {
         return "🔴";
+    }
+
+    if (price === 0) {
+        return "🔵";
     }
 }
 
