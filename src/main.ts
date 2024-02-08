@@ -51,6 +51,7 @@ async function getData() {
     const balance = await getBalance(address);
     const { usd, myr } = await getCurrentPrice();
     const priceChange = (myr - previousPrice) / myr;
+    const indicator = priceChangeIndicator(priceChange);
     const date = new Date();
     const displayDate = date.toLocaleDateString("en-GB");
     const displayTime = date.toLocaleTimeString("en-US");
@@ -66,15 +67,30 @@ async function getData() {
 <b>ETH Price:</b> <code>${formatNumber(myr)} MYR</code>
 `;
 
-    if (previousPrice !== 0) {
+    if (previousPrice !== 0 && priceChange !== 0) {
         result += `<b>Price Change:</b> <code>${formatNumber(
             priceChange
-        )}%</code>`;
+        )}%</code> ${indicator}`;
     }
 
     previousPrice = myr;
 
     return result.trim();
+}
+
+function priceChangeIndicator(price: number) {
+    // more than 10%
+    if (price > 10) {
+        return "🚀";
+    }
+
+    if (price > 0) {
+        return "🟢";
+    }
+
+    if (price < 0) {
+        return "🔴";
+    }
 }
 
 bot.onText(/\/status/, async () => {
@@ -108,12 +124,15 @@ bot.onText(/\/start/, () => {
     });
 });
 
-setInterval(async () => {
-    console.log("crypto portfolio update");
-    const data = await getData();
-    const chatId = process.env.CHAT_ID!;
+setInterval(
+    async () => {
+        console.log("crypto portfolio update");
+        const data = await getData();
+        const chatId = process.env.CHAT_ID!;
 
-    bot.sendMessage(chatId, data, { parse_mode: "HTML" });
-}, 60 * 1000);
+        bot.sendMessage(chatId, data, { parse_mode: "HTML" });
+    },
+    60 * 60 * 1000
+);
 
 console.log("bot started");
