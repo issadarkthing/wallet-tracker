@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import TelegramBot, { KeyboardButton } from "node-telegram-bot-api";
+import TelegramBot from "node-telegram-bot-api";
 import { config } from "dotenv";
 config();
 
