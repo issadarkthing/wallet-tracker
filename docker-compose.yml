@@ -1,0 +1,8 @@
+---
+version: '3'
+services:
+  wallet-tracker:
+    image: wallet-tracker
+    container_name: wallet-tracker
+    restart: unless-stopped
+    build: .
