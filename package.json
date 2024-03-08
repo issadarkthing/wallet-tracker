@@ -7,9 +7,11 @@
         "start": "node dist/main.js"
     },
     "dependencies": {
+        "@prisma/client": "5.10.2",
         "dotenv": "^16.4.1",
         "ethers": "^6.10.0",
-        "node-telegram-bot-api": "^0.64.0"
+        "node-telegram-bot-api": "^0.64.0",
+        "prisma": "^5.10.2"
     },
     "devDependencies": {
         "@types/node": "^20.11.16",

@@ -1,10 +1,12 @@
 import { ethers } from "ethers";
 import TelegramBot from "node-telegram-bot-api";
 import { config } from "dotenv";
+import { PrismaClient } from "@prisma/client";
 config();
 
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
 const bot = new TelegramBot(telegramBotToken, { polling: true });
+const prisma = new PrismaClient();
 
 async function getBalance(address: string) {
     const url = new URL("https://api.etherscan.io/api");
@@ -44,24 +46,32 @@ function formatNumber(num: number) {
     return num.toFixed(2);
 }
 
-let previousPrice = 0; // myr
+async function getTotalDeposit() {
+    const result = await prisma.deposit.aggregate({ _sum: { myr: true } });
+    return result._sum.myr?.toNumber() || 0;
+}
 
 async function getData() {
     const address = process.env.ADDRESS!;
     const balance = await getBalance(address);
     const { usd, myr } = await getCurrentPrice();
-    const priceChange = (myr - previousPrice) / myr;
-    const indicator = priceChangeIndicator(priceChange);
     const date = new Date();
     const displayDate = date.toLocaleDateString("en-GB");
     const displayTime = date.toLocaleTimeString("en-US");
     const displayBalance = Number(ethers.formatEther(balance)).toFixed(5);
+    const myrBalance = calculateBalance(balance, myr);
+    const totalDeposit = await getTotalDeposit();
+    const profit = myrBalance - totalDeposit;
+    const profitPercent = (profit / totalDeposit) * 100;
 
     let result = `
-${indicator} ${priceChange.toFixed(4)}%
-<b>Balance:</b> <code>${formatNumber(calculateBalance(balance, usd))} USD</code>
-<b>Balance:</b> <code>${formatNumber(calculateBalance(balance, myr))} MYR</code>
-<b>Balance:</b> <code>${displayBalance} ETH</code>
+<code>${displayBalance} ETH</code>
+<b>Balance:</b> <code>${formatNumber(myrBalance)} MYR</code>
+<b>Deposit:</b> <code>${formatNumber(totalDeposit)} MYR</code>
+<b>Profit:</b> <code>${formatNumber(profit)} MYR (${profitPercent.toFixed(
+        4
+    )}%)</code>
+
 <b>ETH Price:</b> <code>${formatNumber(usd)} USD</code>
 <b>ETH Price:</b> <code>${formatNumber(myr)} MYR</code>
 <b>Address:</b> ${address.slice(0, 13)}
@@ -69,28 +79,7 @@ ${indicator} ${priceChange.toFixed(4)}%
 <i>${displayDate} ${displayTime}</i>
 `;
 
-    previousPrice = myr;
-
     return result.trim();
-}
-
-function priceChangeIndicator(price: number) {
-    // more than 10%
-    if (price > 10) {
-        return "🚀";
-    }
-
-    if (price > 0) {
-        return "🟢";
-    }
-
-    if (price < 0) {
-        return "🔴";
-    }
-
-    if (price === 0) {
-        return "🔵";
-    }
 }
 
 // convert "1h", "3m", "4d" to milliseconds
