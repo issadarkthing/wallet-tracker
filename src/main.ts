@@ -5,8 +5,23 @@ import { PrismaClient } from "@prisma/client";
 config();
 
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const bot = new TelegramBot(telegramBotToken, { polling: true });
 const prisma = new PrismaClient();
+
+// gwei
+async function getGasPrice() {
+    const { gasPrice, maxPriorityFeePerGas } = await provider.getFeeData();
+
+    if (!gasPrice || !maxPriorityFeePerGas)
+        return { gasPrice: 0n, txPrice: 0n };
+
+    const maxFeePerGas = 2n * gasPrice + maxPriorityFeePerGas;
+    const gasLimit = 21000n;
+    const txPrice = maxFeePerGas * gasLimit;
+
+    return { gasPrice, txPrice };
+}
 
 async function getBalance(address: string) {
     const url = new URL("https://api.etherscan.io/api");
@@ -38,7 +53,7 @@ async function getCurrentPrice() {
     return { myr, usd } as { myr: number; usd: number };
 }
 
-function calculateBalance(balance: bigint, price: number) {
+function convert(balance: bigint, price: number) {
     return Number(ethers.formatEther(balance)) * price;
 }
 
@@ -59,27 +74,35 @@ async function getData() {
     const displayDate = date.toLocaleDateString("en-GB");
     const displayTime = date.toLocaleTimeString("en-US");
     const displayBalance = Number(ethers.formatEther(balance)).toFixed(5);
-    const myrBalance = calculateBalance(balance, myr);
+    const myrBalance = convert(balance, myr);
     const totalDeposit = await getTotalDeposit();
     const profit = myrBalance - totalDeposit;
-    const profitPercent = (profit / totalDeposit) * 100;
+    const profitPercent = formatNumber((profit / totalDeposit) * 100);
+    const { gasPrice, txPrice } = await getGasPrice();
+    const myrTxPrice = convert(txPrice, myr);
 
     let result = `
 <code>${displayBalance} ETH</code>
 <b>Balance:</b> <code>${formatNumber(myrBalance)} MYR</code>
 <b>Deposit:</b> <code>${formatNumber(totalDeposit)} MYR</code>
-<b>Profit:</b> <code>${formatNumber(profit)} MYR (${profitPercent.toFixed(
-        4
-    )}%)</code>
+<b>Profit:</b> <code>${formatNumber(profit)} MYR (${profitPercent}%)</code>
+
+<b>Gas Price:</b> <code>${formatGwei(gasPrice)} GWEI</code>
+<b>Tx Price:</b> <code>${formatGwei(txPrice)} GWEI</code>
+<b>Tx Price:</b> <code>${formatNumber(myrTxPrice)} MYR</code>
 
 <b>ETH Price:</b> <code>${formatNumber(usd)} USD</code>
 <b>ETH Price:</b> <code>${formatNumber(myr)} MYR</code>
-<b>Address:</b> ${address.slice(0, 13)}
+<b>Address:</b> ${address.slice(0, 18)}
 
 <i>${displayDate} ${displayTime}</i>
 `;
 
     return result.trim();
+}
+
+function formatGwei(value: bigint) {
+    return Math.round(Number(ethers.formatUnits(value, "gwei")));
 }
 
 // convert "1h", "3m", "4d" to milliseconds
