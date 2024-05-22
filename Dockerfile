@@ -13,6 +13,7 @@ RUN yarn install --pure-lockfile
 
 COPY --chown=node:node . .
 
+RUN npx prisma generate
 RUN yarn run build
 
 CMD ["npm", "start"]
