@@ -4,9 +4,14 @@ export default abstract class Token {
     abstract getBalanceInMYR(): Promise<number>;
     address = process.env.ADDRESS!;
 
-    async getProfit(totalProfitInPercent: number, totalBalance: number) {
+    async getProfit(
+        totalProfit: number,
+        totalProfitInPercent: number,
+        totalBalance: number
+    ) {
         const balance = await this.getBalanceInMYR();
-        const profit = totalProfitInPercent * (balance / totalBalance);
-        return { tokenName: this.name, profit };
+        const profit = totalProfit * (balance / totalBalance);
+        const profitInPercent = totalProfitInPercent * (balance / totalBalance);
+        return { tokenName: this.name, profit, profitInPercent };
     }
 }

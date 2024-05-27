@@ -10,10 +10,14 @@ export default class Telegram {
     bot = new TelegramBot(this.telegramBotToken, { polling: true });
     tokens = [new ETH(), new wBTC()];
 
-    async getTokensProfit(profitInPercent: number, totalBalance: number) {
+    async getTokensProfit(
+        totalProfit: number,
+        profitInPercent: number,
+        totalBalance: number
+    ) {
         const profit = await Promise.all(
             this.tokens.map((token) =>
-                token.getProfit(profitInPercent, totalBalance)
+                token.getProfit(totalProfit, profitInPercent, totalBalance)
             )
         );
 
@@ -32,26 +36,27 @@ export default class Telegram {
         const deposit = new Deposit();
         const totalDeposit = await deposit.getTotalDeposit();
         const totalBalance = await this.getTotalBalance();
-        const profit = totalBalance - totalDeposit;
-        const profitInPercent = (profit / totalDeposit) * 100;
+        const totalProfit = totalBalance - totalDeposit;
+        const profitInPercent = (totalProfit / totalDeposit) * 100;
         const date = new Date();
         const displayDate = date.toLocaleDateString("en-GB");
         const displayTime = date.toLocaleTimeString("en-US");
         const profits = await this.getTokensProfit(
+            totalProfit,
             profitInPercent,
             totalBalance
         );
         const displayProfit = profits
             .map(
                 (profit) =>
-                    `${profit.tokenName}: ${formatNumber(profit.profit)}%`
+                    `${profit.tokenName}: ${formatNumber(profit.profit)} MYR (${formatNumber(profit.profitInPercent)}%)`
             )
             .join("\n");
 
         let result = `
 <b>Deposit:</b> <code>${formatNumber(totalDeposit)} MYR</code>
 <b>Balance:</b> <code>${formatNumber(totalBalance)} MYR</code>
-<b>Profit:</b> <code>${formatNumber(profit)} MYR (${formatNumber(profitInPercent)}%)</code>
+<b>Profit:</b> <code>${formatNumber(totalProfit)} MYR (${formatNumber(profitInPercent)}%)</code>
 
 <b>Coins (profit)</b>
 ${displayProfit}
