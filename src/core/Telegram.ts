@@ -12,12 +12,9 @@ export default class Telegram {
 
     async getTokensProfit(profitInPercent: number, totalBalance: number) {
         const profit = await Promise.all(
-            this.tokens.map(async (token) => {
-                const balance = await token.getBalanceInMYR();
-                const profit = profitInPercent * (balance / totalBalance);
-
-                return { tokenName: token.name, profit };
-            })
+            this.tokens.map((token) =>
+                token.getProfit(profitInPercent, totalBalance)
+            )
         );
 
         return profit;
