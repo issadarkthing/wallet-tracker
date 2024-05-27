@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import Token from "./Token";
+import { exchanger } from "../Exchanger";
 
 export default class extends Token {
     name = "BTC";
@@ -22,20 +23,8 @@ export default class extends Token {
     }
 
     async getBalanceInMYR(): Promise<number> {
-        const url = new URL(
-            "/api/v3/simple/price",
-            "https://api.coingecko.com"
-        );
-
-        url.searchParams.append("ids", "bitcoin");
-        url.searchParams.append("vs_currencies", "myr");
-        url.searchParams.append("precision", "full");
-
-        const result = await fetch(url.href);
-        const { bitcoin } = await result.json();
-        const myrPrice = bitcoin.myr as number;
+        const price = await exchanger.get(this.name);
         const balance = await this.getBalance();
-
-        return balance * myrPrice;
+        return balance * price;
     }
 }
