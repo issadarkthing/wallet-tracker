@@ -3,10 +3,19 @@ import { PrismaClient } from "@prisma/client";
 export default class Deposit {
     prisma = new PrismaClient();
 
+    async getDeposits() {
+        const result = await this.prisma.deposit.groupBy({
+            by: ["tokenName"],
+            _sum: { amount: true },
+        });
+
+        return result;
+    }
+
     async getTotalDeposit() {
         const result = await this.prisma.deposit.aggregate({
-            _sum: { myr: true },
+            _sum: { amount: true },
         });
-        return result._sum.myr?.toNumber() || 0;
+        return result._sum.amount?.toNumber() || 0;
     }
 }

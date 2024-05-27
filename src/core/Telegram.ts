@@ -8,11 +8,24 @@ import { formatNumber } from "../utils/formatNumber";
 export default class Telegram {
     telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
     bot = new TelegramBot(this.telegramBotToken, { polling: true });
+    tokens = [new ETH(), new wBTC()];
+
+    async getTokensProfit(profitInPercent: number, totalBalance: number) {
+        const profit = await Promise.all(
+            this.tokens.map(async (token) => {
+                const balance = await token.getBalanceInMYR();
+                const profit = profitInPercent * (balance / totalBalance);
+
+                return { tokenName: token.name, profit };
+            })
+        );
+
+        return profit;
+    }
 
     async getTotalBalance() {
-        const tokens = [new ETH(), new wBTC()];
         const balances = await Promise.all(
-            tokens.map((token) => token.getBalanceInMYR())
+            this.tokens.map((token) => token.getBalanceInMYR())
         );
         return balances.reduce((acc, val) => acc + val, 0);
     }
@@ -27,11 +40,24 @@ export default class Telegram {
         const date = new Date();
         const displayDate = date.toLocaleDateString("en-GB");
         const displayTime = date.toLocaleTimeString("en-US");
+        const profits = await this.getTokensProfit(
+            profitInPercent,
+            totalBalance
+        );
+        const displayProfit = profits
+            .map(
+                (profit) =>
+                    `${profit.tokenName}: ${formatNumber(profit.profit)}%`
+            )
+            .join("\n");
 
         let result = `
 <b>Deposit:</b> <code>${formatNumber(totalDeposit)} MYR</code>
 <b>Balance:</b> <code>${formatNumber(totalBalance)} MYR</code>
 <b>Profit:</b> <code>${formatNumber(profit)} MYR (${formatNumber(profitInPercent)}%)</code>
+
+<b>Coins (profit)</b>
+${displayProfit}
 
 <b>Address:</b> ${address.slice(0, 18)}
 
