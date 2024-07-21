@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 export default class Deposit {
     prisma = new PrismaClient();
 
-    async getDeposits() {
+    async getDeposit() {
         const result = await this.prisma.deposit.groupBy({
             by: ["tokenName"],
             _sum: { amount: true },
