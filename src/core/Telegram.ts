@@ -4,11 +4,13 @@ import ETH from "./tokens/ETH";
 import wBTC from "./tokens/WrappedBTC";
 import Deposit from "./Deposit";
 import { formatNumber } from "../utils/formatNumber";
+import BNB from "./tokens/BNB";
+import wTON from "./tokens/WrappedTon";
 
 export default class Telegram {
     telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
     bot = new TelegramBot(this.telegramBotToken, { polling: true });
-    tokens = [new ETH(), new wBTC()];
+    tokens = [new ETH(), new wBTC(), new BNB(), new wTON()];
 
     async getTokensProfit(
         totalProfit: number,

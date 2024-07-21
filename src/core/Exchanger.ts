@@ -4,6 +4,8 @@ class Exchanger {
     coins = [
         { id: "bitcoin", name: "BTC" },
         { id: "ethereum", name: "ETH" },
+        { id: "binancecoin", name: "BNB" },
+        { id: "the-open-network", name: "TONCOIN" },
     ];
     cache = new Map<string, number>();
     timestamp = 0;
