@@ -6,6 +6,7 @@ import Deposit from "./Deposit";
 import { formatNumber } from "../utils/formatNumber";
 import BNB from "./tokens/BNB";
 import wTON from "./tokens/WrappedTon";
+import Withdraw from "./Withdraw";
 
 export default class Telegram {
     telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
@@ -36,7 +37,15 @@ export default class Telegram {
     async getData() {
         const address = process.env.ADDRESS!;
         const deposit = new Deposit();
-        const totalDeposit = await deposit.getTotalDeposit();
+        const withdraw = new Withdraw();
+        let totalDeposit =
+            (await deposit.getTotalDeposit()) -
+            (await withdraw.getTotalWithdrawals());
+
+        if (totalDeposit <= 0) {
+            totalDeposit = 1;
+        }
+
         const totalBalance = await this.getTotalBalance();
         const totalProfit = totalBalance - totalDeposit;
         const profitInPercent = (totalProfit / totalDeposit) * 100;
